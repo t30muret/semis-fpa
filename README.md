@@ -33,6 +33,15 @@ After freezing, commit and push right away. The commit timestamp proves the fore
 After each company files its 10-Q or 10-K, rerun `ingest_edgar.py`, `build_quarters.py`, then
 `python src\score_live.py`.
 
+Load everything into PostgreSQL (database `semis_fpa`, schema `fpa`) and build the SQL views:
+
+```
+set "PGPASSWORD=your postgres password"
+python src\load_postgres.py
+```
+
+The SQL views live in `sql/views/`; see `sql/EXERCISES.md`.
+
 ## Method
 
 **Clean quarters.** EDGAR's companyfacts API mixes 3-month, year-to-date and full-year values, and

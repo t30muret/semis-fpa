@@ -39,6 +39,9 @@ METRIC_TAGS = {
     "operating_income": ["OperatingIncomeLoss"],
     "rnd": ["ResearchAndDevelopmentExpense", "ResearchAndDevelopmentExpenseExcludingAcquiredInProcessCost"],
     "sga": ["SellingGeneralAndAdministrativeExpense"],
+    # Cisco, Arista and Ciena report these two lines instead of one SG&A line
+    "sales_marketing": ["SellingAndMarketingExpense"],
+    "g_and_a": ["GeneralAndAdministrativeExpense"],
 }
 
 # Large acquisitions that break the history. Close dates are approximate:

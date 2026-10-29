@@ -1,0 +1,9 @@
+# raw EDGAR downloads are large and re-downloadable
+data/raw/
+# processed outputs are rebuilt by the scripts
+data/processed/
+tests/truth.csv
+.venv/
+__pycache__/
+*.pyc
+# frozen forecasts ARE committed: never ignore forecasts/frozen/

@@ -99,13 +99,25 @@ def parse_instance(content: bytes) -> list[dict]:
             continue  # instant (balance-sheet) context
         seg = ctx.find(f"{XBRLI}entity/{XBRLI}segment")
         members = [] if seg is None else list(seg)
-        if len(members) != 1 or members[0].tag != XBRLDI + "explicitMember":
-            continue  # keep single-dimension facts only
+        if not members or any(m.tag != XBRLDI + "explicitMember" for m in members):
+            continue
+        # Since ASU 2023-07 (2024+), segment tables often add a second label,
+        # ConsolidationItemsAxis = OperatingSegmentsMember. Keep that pair as one fact.
+        consolidation = ""
+        if len(members) == 2:
+            cons = [m for m in members if m.get("dimension", "").endswith("ConsolidationItemsAxis")]
+            if len(cons) != 1:
+                continue
+            consolidation = (cons[0].text or "").strip().split(":")[-1]
+            members = [m for m in members if m is not cons[0]]
+        if len(members) != 1:
+            continue
         m = members[0]
         contexts[ctx.get("id")] = {
             "start": start.text.strip(), "end": end.text.strip(),
             "dimension": m.get("dimension", "").split(":")[-1],
             "member": (m.text or "").strip().split(":")[-1],
+            "consolidation": consolidation,
         }
 
     usd_units = set()
@@ -174,7 +186,7 @@ def main() -> int:
         return 2
     df = pd.DataFrame(all_rows)
     cols = ["ticker", "cik", "accession", "form", "filed", "report_date", "tag", "namespace",
-            "dimension", "member", "start", "end", "value"]
+            "dimension", "member", "consolidation", "start", "end", "value"]
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     df[cols].to_csv(PROCESSED_DIR / "segments_raw.csv", index=False)
     print(f"\nWrote {len(df):,} rows to data/processed/segments_raw.csv")

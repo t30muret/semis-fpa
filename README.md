@@ -33,6 +33,15 @@ After freezing, commit and push right away. The commit timestamp proves the fore
 After each company files its 10-Q or 10-K, rerun `ingest_edgar.py`, `build_quarters.py`, then
 `python src\score_live.py`.
 
+Segment data and variance bridges (forecast vs. actual gross profit split into volume, mix
+and rate):
+
+```
+python src\fetch_segments.py    # segment facts from each filing's XBRL (cached)
+python src\build_segments.py    # clean quarterly segments, reconciled to total revenue
+python src\variance.py          # bridges for every chosen-model forecast with an actual
+```
+
 Load everything into PostgreSQL (database `semis_fpa`, schema `fpa`) and build the SQL views:
 
 ```

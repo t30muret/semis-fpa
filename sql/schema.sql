@@ -67,15 +67,55 @@ CREATE TABLE events (
     description  TEXT NOT NULL
 );
 
--- Filled by hand from earnings releases and 10-Q segment notes (weekend 2-3)
+-- Segment (or product-line) revenue from each filing's XBRL; see src/build_segments.py.
+-- gross_profit is NULL where the company doesn't report segment gross profit.
 CREATE TABLE segments_q (
-    ticker              TEXT    NOT NULL REFERENCES companies,
-    period_end          DATE    NOT NULL,
-    segment             TEXT    NOT NULL,
-    revenue             NUMERIC NOT NULL,
-    operating_profit    NUMERIC,
-    source_note         TEXT,
+    ticker          TEXT    NOT NULL REFERENCES companies,
+    period_end      DATE    NOT NULL,
+    segment         TEXT    NOT NULL,
+    revenue         NUMERIC NOT NULL,
+    gross_profit    NUMERIC,
     PRIMARY KEY (ticker, period_end, segment)
+);
+
+-- Forecast vs. actual gross-profit bridges from src/variance.py.
+-- gp_volume + gp_mix + gp_rate = gp_variance exactly.
+CREATE TABLE variance_bridge (
+    source               TEXT    NOT NULL,
+    ticker               TEXT    NOT NULL REFERENCES companies,
+    horizon              INTEGER NOT NULL,
+    origin_period_end    DATE    NOT NULL,
+    target_period_end    DATE    NOT NULL,
+    event_window         BOOLEAN NOT NULL,
+    revenue_forecast     NUMERIC NOT NULL,
+    revenue_actual       NUMERIC NOT NULL,
+    revenue_variance     NUMERIC NOT NULL,
+    gm_forecast_pct      NUMERIC NOT NULL,
+    gm_actual_pct        NUMERIC NOT NULL,
+    gp_forecast          NUMERIC NOT NULL,
+    gp_actual            NUMERIC NOT NULL,
+    gp_variance          NUMERIC NOT NULL,
+    gp_volume            NUMERIC NOT NULL,
+    gp_mix               NUMERIC NOT NULL,
+    gp_rate              NUMERIC NOT NULL,
+    has_segments         BOOLEAN NOT NULL,
+    has_segment_margins  BOOLEAN NOT NULL
+);
+
+-- Revenue miss split by segment: revenue_volume + revenue_mix = actual - forecast for that segment.
+CREATE TABLE variance_segments (
+    source             TEXT    NOT NULL,
+    ticker             TEXT    NOT NULL REFERENCES companies,
+    horizon            INTEGER NOT NULL,
+    origin_period_end  DATE    NOT NULL,
+    target_period_end  DATE    NOT NULL,
+    segment            TEXT    NOT NULL,
+    share_forecast     NUMERIC NOT NULL,
+    share_actual       NUMERIC,
+    revenue_forecast   NUMERIC NOT NULL,
+    revenue_actual     NUMERIC,
+    revenue_volume     NUMERIC NOT NULL,
+    revenue_mix        NUMERIC
 );
 
 CREATE TABLE guidance (

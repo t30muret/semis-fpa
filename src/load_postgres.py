@@ -57,8 +57,17 @@ def build_tables() -> dict[str, pd.DataFrame]:
     forecasts = pd.concat(frames, ignore_index=True)
 
     events = pd.DataFrame(EVENTS, columns=["ticker", "event_date", "description"])
-    return {"companies": companies, "fiscal_calendar": cal, "financials_q": fin,
-            "forecasts": forecasts, "events": events}
+    tables = {"companies": companies, "fiscal_calendar": cal, "financials_q": fin,
+              "forecasts": forecasts, "events": events}
+    # optional tables, loaded once their scripts have run
+    for name, file in [("segments_q", "segments_q.csv"), ("variance_bridge", "variance_bridge.csv"),
+                       ("variance_segments", "variance_segments.csv")]:
+        path = PROCESSED_DIR / file
+        if path.exists():
+            tables[name] = pd.read_csv(path)
+        else:
+            print(f"  (skipping {name}: run the script that writes {file})")
+    return tables
 
 
 def to_csv_text(df: pd.DataFrame) -> str:

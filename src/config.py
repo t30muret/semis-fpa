@@ -60,6 +60,47 @@ EVENTS = [
     ("CSCO", "2024-03-18", "Splunk acquisition closes"),
 ]
 
+# Segment map for the variance bridges. For each company: which XBRL axis to use, and
+# for each clean segment name a list of ALTERNATIVES; each alternative is a list of
+# members summed together. The first alternative with data for a quarter wins
+# (e.g. Marvell's older end markets roll up into today's "Communications & Other").
+# cost_tags: segment cost-of-revenue tags, used to get segment gross profit where a
+# company reports segment cost but not segment gross profit.
+SEG_REVENUE_TAGS = ["RevenueFromContractWithCustomerExcludingAssessedTax",
+                    "RevenueFromContractWithCustomerIncludingAssessedTax", "Revenues"]
+SEGMENTS = {
+    "ANET": {"axis": "ProductOrServiceAxis",
+             "segments": {"Product": [["ProductMember"]], "Service": [["ServiceMember"]]},
+             "cost_tags": ["CostOfGoodsAndServicesSold"]},
+    "AVGO": {"axis": "StatementBusinessSegmentsAxis",
+             "segments": {"Semiconductor Solutions": [["SemiconductorSolutionsMember"]],
+                          "Infrastructure Software": [["InfrastructureSoftwareMember"]]},
+             "cost_tags": ["SemiconductorSolutionsCostOfRevenue", "InfrastructureSoftwareCostOfRevenue"]},
+    "CIEN": {"axis": "StatementBusinessSegmentsAxis",
+             "segments": {"Networking Platforms": [["NetworkingPlatformsSegmentMember"]],
+                          "Platform Software & Services": [["PlatformSoftwareandServicesSegmentMember"]],
+                          "Blue Planet": [["BluePlanetAutomationSoftwareandServicesSegmentMember"]],
+                          "Global Services": [["GlobalServicesMember"]]}},
+    "COHR": {"axis": "StatementBusinessSegmentsAxis",
+             "segments": {"Datacenter & Communications": [["DatacenterAndCommunicationsSegmentMember"]],
+                          "Industrial": [["IndustrialSegmentMember"]]}},
+    "CSCO": {"axis": "StatementBusinessSegmentsAxis",
+             "segments": {"Americas": [["AmericasSegmentMember"]],
+                          "EMEA": [["EuropeMiddleEastAndAfricaSegmentMember"]],
+                          "APJC": [["AsiaPacificJapanAndChinaSegmentMember"]]}},
+    "FN":   {"axis": "ProductOrServiceAxis",
+             "segments": {"Optical Communications": [["OpticalCommunicationsMember"]],
+                          "Non-optical": [["NonOpticalCommunicationsMember"], ["LasersSensorsAndOtherMember"]]}},
+    "LITE": {"axis": "StatementBusinessSegmentsAxis",
+             "segments": {"Components": [["ComponentsMember"]], "Systems": [["SystemsMember"]]}},
+    "MRVL": {"axis": "ProductOrServiceAxis",
+             "segments": {"Data Center": [["DataCenterMember"]],
+                          "Communications & Other": [["CommunicationsAndOtherMember"],
+                                                     ["EnterpriseNetworkingMember", "CarrierInfrastructureMember",
+                                                      "ConsumerMember", "AutomotiveAndIndustrialMember"]]}},
+}
+SEGMENT_TOLERANCE = 0.02  # segment revenue must add up to total revenue within 2%
+
 # Backtest settings
 MIN_TRAIN_QUARTERS = 16          # need 4 years of history before the first forecast
 BACKTEST_FIRST_ORIGIN = "2017-01-01"
